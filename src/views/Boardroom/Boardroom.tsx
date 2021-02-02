@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useCallback } from 'react';
 import styled from 'styled-components';
 import { useWallet } from 'use-wallet';
 
@@ -15,6 +15,7 @@ import useStakedBalanceOnBoardroom from '../../hooks/useStakedBalanceOnBoardroom
 import config from '../../config';
 import LaunchCountdown from '../../components/LaunchCountdown';
 import Stat from './components/Stat';
+import TWAPStat from './components/TWAPStat';
 import ProgressCountdown from './components/ProgressCountdown';
 import useCashPriceInEstimatedTWAP from '../../hooks/useCashPriceInEstimatedTWAP';
 import useTreasuryAmount from '../../hooks/useTreasuryAmount';
@@ -24,6 +25,8 @@ import useTreasuryAllocationTimes from '../../hooks/useTreasuryAllocationTimes';
 import Notice from '../../components/Notice';
 import useBoardroomVersion from '../../hooks/useBoardroomVersion';
 import moment from 'moment';
+import useSeigniorageOracleBlockTimestampLast from '../../hooks/useSeigniorageOracleBlockTimestampLast';
+import { getDisplayDate } from '../../utils/formatDate';
 
 const Boardroom: React.FC = () => {
   useEffect(() => window.scrollTo(0, 0));
@@ -67,6 +70,7 @@ const Boardroom: React.FC = () => {
     return <></>;
   }, [boardroomVersion]);
 
+  const blockTimestampLast = useSeigniorageOracleBlockTimestampLast();
   const isLaunched = Date.now() >= config.boardroomLaunchesAt.getTime();
   if (!isLaunched) {
     return (
@@ -102,10 +106,13 @@ const Boardroom: React.FC = () => {
                 deadline={nextEpoch}
                 description="Next Epoch"
               />
-              <Stat
+              <TWAPStat
                 icon="💵"
                 title={cashStat ? `$${cashStat.priceInUSDT}` : '-'}
                 description="MIC Price (TWAP)"
+                lastUpdatedTime={`Last Updated Time : ${getDisplayDate(blockTimestampLast)}`}
+                buttonIcon="🔄"
+                disable={!blockTimestampLast || Date.now() / 1000 - blockTimestampLast < 300}
               />
               <Stat
                 icon="🚀"
@@ -179,11 +186,11 @@ const StyledHeader = styled.div`
   display: flex;
   flex-direction: row;
   margin-bottom: ${(props) => props.theme.spacing[5]}px;
-  width: 960px;
+  width: 1250px;
 
   > * {
     flex: 1;
-    height: 84px;
+    height: 140px;
     margin: 0 ${(props) => props.theme.spacing[2]}px;
   }
 

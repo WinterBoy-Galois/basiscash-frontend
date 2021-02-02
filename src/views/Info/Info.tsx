@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
+import { useWallet } from 'use-wallet';
+
 import { ShareDistStats, OverviewData } from './types';
 import useBasisCash from '../../hooks/useBasisCash';
 import config from '../../config';
@@ -11,6 +13,8 @@ import { commify } from 'ethers/lib/utils';
 import useCashPriceInEstimatedTWAP from '../../hooks/useCashPriceInEstimatedTWAP';
 import { ShareMetric } from '../../basis-cash/types';
 import { BigNumber } from 'ethers';
+import Button from '../../components/Button';
+import useSeigniorageOracleBlockTimestampLast from '../../hooks/useSeigniorageOracleBlockTimestampLast';
 
 function shareDistStatsFromMetric(metric: ShareMetric): ShareDistStats {
   const pct = (x: string, y: string): string => {
@@ -26,6 +30,7 @@ function shareDistStatsFromMetric(metric: ShareMetric): ShareDistStats {
 
 const Info: React.FC = () => {
   const basisCash = useBasisCash();
+  const { account } = useWallet();
 
   const [{ cash, bond, share, shareMetric }, setStats] = useState<OverviewData>({});
   const [shareDist, setShareDistStats] = useState<ShareDistStats>({
@@ -59,62 +64,80 @@ const Info: React.FC = () => {
     }
   }, [shareMetric])
 
+  const blockTimestampLast = useSeigniorageOracleBlockTimestampLast();
   return (
     <Page>
-      <InfoWrapper>
-        <MICInfo
-          spotPrice={cash ? `$${cash.priceInUSDT} USDT` : '-'}
-          twapPrice={cashEstimatedStat ? `$${cashEstimatedStat.priceInUSDT} USDT` : '-'}
-          supply={cash ? commify(cash.totalSupply) : '-'}
-        />
-        <Section
-          left={
-            <>
-              <SectionHeader text="Supply" />
-              <SectionData title="MIS Circ. Supply" value={shareMetric ? commify(shareMetric.circulatingSupply): '-'} />
-              <SectionData title="MIB Supply" value={bond ? commify(bond.totalSupply) : '-'} />
-            </>
-          }
-          right={
-            <>
-              <SectionHeader text="Price" />
-              <SectionData title="MIS Price" value={share ? `$${commify(share.priceInUSDT)} USDT` : '-'} />
-              <SectionData title="MIB Price" value={bond ? `$${commify(bond.priceInUSDT)} USDT` : '-'} />
-            </>
-          }
-        />
-        <Section
-          title="MIS Metrics"
-          left={
-            <>
-              <SectionData title="MIS in Boardroom:" value={shareDist.boardroomPct} />
-              <SectionData title="Unstaked MIS" value={shareDist.unstakedPct} />
-            </>
-          }
-          right={
-            <>
-              <SectionData title="MIS in USDT/MIS Pool" value={shareDist.USDTMISPoolPct} />
-              <SectionData title="Total MIS Supply" value={share ? commify(share.totalSupply): '-'} />
-            </>
-          }
-        />
-        {/*<Section*/}
-        {/*  title="SushiSwap Pool Metrics"*/}
-        {/*  left={*/}
-        {/*    <>*/}
-        {/*      <SectionSubHeader text="MIC/USDT" />*/}
-        {/*      <SectionData title="TVL:" value="62.11%" />*/}
-        {/*    </>*/}
-        {/*  }*/}
-        {/*  right={*/}
-        {/*    <>*/}
-        {/*      <SectionSubHeader text="MIS/USDT" />*/}
-        {/*      <SectionData title="TVL:" value="62.11%" />*/}
-        {/*    </>*/}
-        {/*  }*/}
-        {/*/>*/}
-      </InfoWrapper>
+      {!!account ? (
+        <>
+          <InfoWrapper>
+            <MICInfo
+              spotPrice={cash ? `$${cash.priceInUSDT} USDT` : '-'}
+              twapPrice={cashEstimatedStat ? `$${cashEstimatedStat.priceInUSDT} USDT` : '-'}
+              supply={cash ? commify(cash.totalSupply) : '-'}
+              buttonIcon="🔄"
+              disable={!blockTimestampLast || Date.now() / 1000 - blockTimestampLast < 300}
+            />
+            <Section
+              left={
+                <>
+                  <SectionHeader text="Supply" />
+                  <SectionData title="MIS Circ. Supply" value={shareMetric ? commify(shareMetric.circulatingSupply) : '-'} />
+                  <SectionData title="MIB Supply" value={bond ? commify(bond.totalSupply) : '-'} />
+                </>
+              }
+              right={
+                <>
+                  <SectionHeader text="Price" />
+                  <SectionData title="MIS Price" value={share ? `$${commify(share.priceInUSDT)} USDT` : '-'} />
+                  <SectionData title="MIB Price" value={bond ? `$${commify(bond.priceInUSDT)} USDT` : '-'} />
+                </>
+              }
+            />
+            <Section
+              title="MIS Metrics"
+              left={
+                <>
+                  <SectionData title="MIS in Boardroom:" value={shareDist.boardroomPct} />
+                  <SectionData title="Unstaked MIS" value={shareDist.unstakedPct} />
+                </>
+              }
+              right={
+                <>
+                  <SectionData title="MIS in USDT/MIS Pool" value={shareDist.USDTMISPoolPct} />
+                  <SectionData title="Total MIS Supply" value={share ? commify(share.totalSupply) : '-'} />
+                </>
+              }
+            />
+            {/*<Section*/}
+            {/*  title="SushiSwap Pool Metrics"*/}
+            {/*  left={*/}
+            {/*    <>*/}
+            {/*      <SectionSubHeader text="MIC/USDT" />*/}
+            {/*      <SectionData title="TVL:" value="62.11%" />*/}
+            {/*    </>*/}
+            {/*  }*/}
+            {/*  right={*/}
+            {/*    <>*/}
+            {/*      <SectionSubHeader text="MIS/USDT" />*/}
+            {/*      <SectionData title="TVL:" value="62.11%" />*/}
+            {/*    </>*/}
+            {/*  }*/}
+            {/*/>*/}
+          </InfoWrapper>
+        </>
+      ) : (
+          <UnlockWallet />
+        )}
     </Page>
+  );
+};
+
+const UnlockWallet = () => {
+  const { connect } = useWallet();
+  return (
+    <Center>
+      <Button onClick={() => connect('injected')} text="Unlock Wallet" />
+    </Center>
   );
 };
 
@@ -124,6 +147,15 @@ const InfoWrapper = styled.div`
   background-color: #26272D;
   padding: ${(props) => props.theme.spacing[3]}px;
   color: ${(props) => props.theme.color.grey[200]};
+`;
+
+const Center = styled.div`
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  margin-top: ${(props) => props.theme.spacing[2]}px;
+  margin-bottom: ${(props) => props.theme.spacing[5]}px;
 `;
 
 export default Info;

@@ -28,27 +28,29 @@ interface StyledButtonProps {
     -12px -12px 24px ${props => props.theme.color.grey[800]}aa;
  */
 
+ // background-color: ${props => props.theme.color.grey[!props.disabled ? 700 : 900]};
 const StyledButton = styled.button<StyledButtonProps>`
   align-items: center;
-  background-color: ${props => props.theme.color.grey[!props.disabled ? 700 : 900]};
+  background-color: transparent;
   border: 0;
   border-radius: 28px;
   color: ${props => !props.disabled ? props.theme.color.primary.main : props.theme.color.grey[500]};
   cursor: pointer;
   display: flex;
   font-weight: 700;
-  height: 56px;
+  height: 28px;
   justify-content: center;
   letter-spacing: 1px;
   outline: none;
   padding: 0;
-  margin: 0;
+  margin-left: 15px;
   pointer-events: ${props => !props.disabled ? undefined : 'none'};
   text-transform: uppercase;
-  width: 56px;
+  width: 28px;
   &:hover {
     background-color: ${props => props.theme.color.grey[800]};
   }
+  font-size: 28px;
 `
 
 const StyledLink = styled(Link)`

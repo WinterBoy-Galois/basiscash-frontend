@@ -11,12 +11,15 @@ import Spacer from '../../components/Spacer';
 import useBondStats from '../../hooks/useBondStats';
 import useBasisCash from '../../hooks/useBasisCash';
 import useBondOraclePriceInLastTWAP from '../../hooks/useBondOraclePriceInLastTWAP';
+import useBondOracleBlockTimestampLast from '../../hooks/useBondOracleBlockTimestampLast';
 import { useTransactionAdder } from '../../state/transactions/hooks';
 import config from '../../config';
 import LaunchCountdown from '../../components/LaunchCountdown';
 import ExchangeStat from './components/ExchangeStat';
+import RefreshStat from './components/RefreshStat';
 import useTokenBalance from '../../hooks/useTokenBalance';
 import { getDisplayBalance } from '../../utils/formatBalance';
+import { getDisplayDate } from '../../utils/formatDate';
 import { BOND_REDEEM_PRICE, BOND_REDEEM_PRICE_BN } from '../../basis-cash/constants';
 import useTreasuryAmount from '../../hooks/useTreasuryAmount';
 
@@ -28,6 +31,7 @@ const Bond: React.FC = () => {
   const bondStat = useBondStats();
   const cashPrice = useBondOraclePriceInLastTWAP();
   const treasuryAmount = useTreasuryAmount();
+  const blockTimestampLast = useBondOracleBlockTimestampLast();
 
   const bondBalance = useTokenBalance(basisCash?.BAB);
 
@@ -44,6 +48,7 @@ const Bond: React.FC = () => {
     },
     [basisCash, addTransaction],
   );
+
   const isBondRedeemable = useMemo(() => cashPrice.gt(BOND_REDEEM_PRICE_BN), [cashPrice]);
   const isBondPurchasable = useMemo(() => Number(bondStat?.priceInUSDT) < 1.0, [bondStat]);
 
@@ -86,14 +91,16 @@ const Bond: React.FC = () => {
                   toTokenName="MITH Bond"
                   priceDesc="Purchasing bonds has been disabled."
                   onExchange={handleBuyBonds}
-                  disabled="true"
+                  disabled={true}
                 />
               </StyledCardWrapper>
               <StyledStatsWrapper>
-                <ExchangeStat
+                <RefreshStat
                   tokenName="MIC"
                   description="Last-Hour TWAP Price"
-                  price={getDisplayBalance(cashPrice, 18, 3)}
+                  price={getDisplayBalance(cashPrice, 18, 2)}
+                  lastUpdatedTime={`Last Updated Time : ${getDisplayDate(blockTimestampLast)}`}
+                  disabled={!blockTimestampLast || Date.now() / 1000 - blockTimestampLast < 300}
                 />
                 <Spacer size="md" />
                 <ExchangeStat
@@ -114,25 +121,25 @@ const Bond: React.FC = () => {
                   disabled={!bondStat || bondBalance.eq(0) || !isBondRedeemable}
                   disabledDescription={
                     treasuryAmount.eq(0) ? 'Treasury is empty' :
-                    bondBalance.eq(0) ? `No available MIB` :
-                    !isBondRedeemable ? `Enabled when MIC > $${BOND_REDEEM_PRICE}` : null
+                      bondBalance.eq(0) ? `No available MIB` :
+                        !isBondRedeemable ? `Enabled when MIC > $${BOND_REDEEM_PRICE}` : null
                   }
                 />
               </StyledCardWrapper>
             </StyledBond>
           </>
         ) : (
-          <div
-            style={{
-              alignItems: 'center',
-              display: 'flex',
-              flex: 1,
-              justifyContent: 'center',
-            }}
-          >
-            <Button onClick={() => connect('injected')} text="Unlock Wallet" />
-          </div>
-        )}
+            <div
+              style={{
+                alignItems: 'center',
+                display: 'flex',
+                flex: 1,
+                justifyContent: 'center',
+              }}
+            >
+              <Button onClick={() => connect('injected')} text="Unlock Wallet" />
+            </div>
+          )}
       </Page>
     </Switch>
   );
