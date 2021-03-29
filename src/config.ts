@@ -38,6 +38,7 @@ const configurations: { [env: string]: Configuration } = {
     refreshInterval: 3000,
     gasLimitMultiplier: 1.1,
     curvDepositor: '0xA79828DF1850E8a3A3064576f380D90aECDD3359',
+    swapMic:'0x09b32387fc154b4fa6fd06a9c09a91316f8fe278'
   },
   production: {
     chainId: ChainId.MAINNET,
@@ -74,6 +75,7 @@ const configurations: { [env: string]: Configuration } = {
     refreshInterval: 30000,
     gasLimitMultiplier: 1.7,
     curvDepositor: '0xA79828DF1850E8a3A3064576f380D90aECDD3359',
+    swapMic:'0x09b32387fc154b4fa6fd06a9c09a91316f8fe278'
   },
 };
 

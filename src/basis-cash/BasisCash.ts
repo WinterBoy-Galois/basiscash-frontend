@@ -10,6 +10,7 @@ import { getDefaultProvider } from '../utils/provider';
 import IUniswapV2PairABI from './IUniswapV2Pair.abi.json';
 import curvPoolABI from './3crvPool.abi.json';
 import curvDepositorABI from './curvDepositor.json';
+import swapMicABI from './swapMic.json';
 
 /**
  * An API module of Basis Cash contracts.
@@ -39,6 +40,7 @@ export class BasisCash {
   mis3Usdt: Contract;
 
   curvDepositor: Contract;
+  swapMic: Contract;
 
   constructor(cfg: Configuration) {
     const { deployments, externalTokens } = cfg;
@@ -92,6 +94,11 @@ export class BasisCash {
     this.curvDepositor = new Contract(
       cfg.curvDepositor,
       curvDepositorABI,
+      provider,
+    )
+    this.swapMic = new Contract(
+      cfg.swapMic,
+      swapMicABI,
       provider,
     )
 
@@ -583,6 +590,21 @@ export class BasisCash {
       '0x0F8c89d3fB0b502732b338f1dfb3c465Dc856C8e',
       [mic2Amount, '0', '0', usdtAmount],
       '1',
+      this.gasOptions(gas),
+    )
+  }
+
+  async SwapMic(mic2Amount: BigNumber, usdtAmount: BigNumber): Promise<TransactionResponse> {
+    const ProxyCurve = this.contracts['ProxyCurve'];
+    const gas = await ProxyCurve.estimateGas.exchangeMIC(
+      3,
+      mic2Amount,
+      usdtAmount,
+    );
+    return await ProxyCurve.exchangeMIC(
+      3,
+      mic2Amount,
+      usdtAmount,
       this.gasOptions(gas),
     )
   }
