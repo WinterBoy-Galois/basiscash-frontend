@@ -11,7 +11,7 @@ import useApprove, { ApprovalState } from '../../hooks/useApprove';
 import { useWallet } from 'use-wallet';
 import useCurvDeposit from '../../hooks/useCurvDeposit';
 
-const CurvDepositor = '0xA79828DF1850E8a3A3064576f380D90aECDD3359';
+const CurvDepositor = '0x7568a35af990cb41216a75da8ca203bcac4b8df2';
 
 const CurvPool: React.FC = () => {
   const { account } = useWallet();
