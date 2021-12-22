@@ -3,6 +3,7 @@ import styled from 'styled-components';
 
 import { useParams } from 'react-router-dom';
 import { useWallet } from 'use-wallet';
+import { useWalleModule } from 'use-walletModule';
 
 import Button from '../../components/Button';
 import PageHeader from '../../components/PageHeader';
